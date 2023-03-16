@@ -1,7 +1,7 @@
 <h1 >
 <h1 align="center">
   <br>
-  <img src="https://raw.githubusercontent.com/zaporter/htf4viam/main/etc/logo.png?token=GHSAT0AAAAAAB6KN4QZ46NIP53S2AZ5JHS6ZASVSMQ" alt="HTF Logo" width="200" style="border-radius:50%; ">
+  <img src="https://github.com/zaporter/htf4viam/blob/main/etc/logo.png?raw=true" alt="HTF Logo" width="200" style="border-radius:50%; ">
   <br>
   <p>Hardware Testing Framework <b style="color:0x44ffff">4</b> Viam</p>
   <br>
