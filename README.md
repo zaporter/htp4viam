@@ -3,7 +3,7 @@
   <br>
   <img src="https://github.com/zaporter/htf4viam/blob/main/etc/logo.png?raw=true" alt="HTF Logo" width="200" style="border-radius:50%; ">
   <br>
-  <p>Hardware Testing Framework <b style="color:0x44ffff">4</b> Viam</p>
+  <p>Hardware Testing Platform <b style="color:0x44ffff">4</b> Viam</p>
   <br>
 </h1>
 
