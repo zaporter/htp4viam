@@ -1,0 +1,30 @@
+{
+    "software-only": {
+        // optional param. Default: true. Used to indicate
+        // if multiple devices can use this
+        // apparatus at the same time. 
+        is_exclusively_locked: false,
+        peripherals: [] 
+    },
+    "webcam-led-1": {
+        // This is purely for logs and data collection. 
+        // It is not used inside of the program
+        peripherals: [
+            "usb-logitech-720p",
+            "blue-led"
+        ]
+    },
+    "microphone-1": {
+        peripherals: [
+            "logitech-2-in-1-mic"
+        ]
+    },
+    "mic-combo-with-webcam": {
+        peripherals: ["test"],
+        // optional param. Use this with caution.
+        // It is far better to have many apparatuses.
+        // This allows the test to use hardware from 
+        // both apparatuses
+        wrapped_apparatuses: ["webcam-led-1", "microphone-1"],
+    }
+}

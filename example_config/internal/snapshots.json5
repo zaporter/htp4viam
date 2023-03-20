@@ -1,0 +1,10 @@
+// WARNING: read README.md before editing these files
+{
+    rpi-4b-2gb: {
+        snapshots: [
+            {
+                path:"test"
+            },
+        ]
+    }
+}

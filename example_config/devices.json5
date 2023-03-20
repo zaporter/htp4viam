@@ -1,0 +1,10 @@
+{
+    "testing-rpi-4b-1.local": {
+        type: "rpi-4b-2gb",
+        connected_apparatuses: ["software-only"]
+    },
+    "testing-mbpro-1.local": {
+        type: "mbpro-m1",
+        connected_apparatuses: ["software-only", "rplidar-a3"]
+    }
+}

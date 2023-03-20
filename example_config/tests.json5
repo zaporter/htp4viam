@@ -1,0 +1,27 @@
+{
+    general: [
+        {
+            name: "startup",
+            dependencies: {
+                viam_server_appimage: "HEAD",
+                viam_python_sdk: "HEAD",
+            },
+            excluded_device_types: [],
+            apparatus: "software_only",
+            robot_config: "./configs/simple.json",
+            // optional
+            sdk_test_script: "python ./tests/general/startup.py"
+        },
+        {
+            name: "integration and workflow tests",
+            dependencies: {
+                viam_server_appimage: "HEAD",
+            },
+            excluded_device_types: [],
+            apparatus: "software_only",
+            robot_config: "./configs/simple.json",
+            // optional
+            local_test_script: "make test",
+        },
+    ]
+}
