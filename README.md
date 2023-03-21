@@ -10,7 +10,7 @@
 
 <h4 align="center">A powerful and extensible tool to run tests with <a href="https://github.com/viamrobotics/">Viam</a> Robots.</h4>
 
-<h4 align="center">⚠️ This project is not associated with Viam and it does not promise long term support to Viam or their customers ⚠️</h4>
+<h4 align="center">⚠️ This project is not associated with Viam and it does not promise support to Viam or their customers ⚠️</h4>
 <h1></h1>
 
 
