@@ -8,9 +8,10 @@ edition = "2021"
 [dependencies]
 anyhow = { version = "1.0.70", features = ["backtrace"] }
 env_logger = "0.10.0"
-git2 = "0.16.1"
 json5 = "0.4.1"
 log = "0.4.17"
+openssl = "0.10.48"
 serde = { version = "1.0.157", features = ["derive"] }
+ssh2 = "0.9.4"
 tokio = { version = "1.26.0", features = ["full"] }
 

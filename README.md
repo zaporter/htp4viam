@@ -30,6 +30,10 @@
 
 ### Setting up a Raspberry Pi for htf4viam
 
+Setup the orchestrator
+Then run:
+curl -sSL http://orchestrator.local/setup.sh | bash
+
 
 ## License
 
