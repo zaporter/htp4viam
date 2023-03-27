@@ -1,0 +1,7 @@
+{
+    mbpro2011 : {
+        architecture: "aarch64",
+        os: "macOS",
+        os_version: "Something old",
+    }
+}

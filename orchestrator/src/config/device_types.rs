@@ -1,7 +1,7 @@
 use std::{collections::HashMap, path::PathBuf};
 use serde::{Deserialize, Serialize};
 
-pub type DeviceTypesMap = HashMap<String, DeviceType>;
+pub type DeviceTypeMap = HashMap<String, DeviceType>;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct DeviceType {
@@ -10,9 +10,9 @@ pub struct DeviceType {
     os_version: String,
 }
 
-pub fn parse_device_types(path: PathBuf) -> Result<DeviceTypesMap, anyhow::Error> {
+pub fn parse(path: &PathBuf) -> Result<DeviceTypeMap, anyhow::Error> {
     let json5_str = std::fs::read_to_string(path)?;
-    let device_types: DeviceTypesMap = json5::from_str(&json5_str)?;
+    let device_types: DeviceTypeMap = json5::from_str(&json5_str)?;
     Ok(device_types)
 }
 
@@ -21,8 +21,8 @@ mod tests {
     use super::*;
     #[test]
     fn test_parse_device_types() {
-        let path = PathBuf::from("../example_config/device-types.json5");
-        let device_types_map = parse_device_types(path).unwrap();
+        let path = PathBuf::from("../example_config/device_types.json5");
+        let device_types_map = parse(&path).unwrap();
         assert_eq!(device_types_map.len(), 2);
     }
 }

@@ -1,0 +1,9 @@
+{
+    "software-only": {
+        // optional param. Default: true. Used to indicate
+        // if multiple devices can use this
+        // apparatus at the same time. 
+        is_exclusively_locked: false,
+        peripherals: [] 
+    },
+}

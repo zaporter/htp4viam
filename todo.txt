@@ -1,0 +1,11 @@
+Steps to a MVP:
+
+- ability to run tests on a remote device
+- ability to build dependencies
+- ability to automatically run tests
+- ability to manually replace dependencies
+- ability to record data from a test
+
+
+Later:
+Split config out to seperate repo

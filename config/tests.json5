@@ -1,0 +1,14 @@
+{
+    general: [
+        {
+            name: "simpleconn",
+            dependencies: {
+            },
+            excluded_device_types: [],
+            apparatus: "software_only",
+            robot_config: "./robot_cfgs/empty.json",
+            // optional
+            on_device_test_script: "echo hi"
+        },
+    ]
+}

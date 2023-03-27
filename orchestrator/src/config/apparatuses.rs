@@ -1,7 +1,7 @@
 use std::{collections::HashMap, path::PathBuf};
 use serde::{Deserialize, Serialize};
 
-pub type ApparatusesMap = HashMap<String, Apparatus>;
+pub type ApparatusMap = HashMap<String, Apparatus>;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Apparatus {
@@ -26,9 +26,9 @@ fn default_exclusively_locked() -> bool {
     true
 }
 
-pub fn parse(path: PathBuf) -> Result<ApparatusesMap, anyhow::Error> {
+pub fn parse(path: &PathBuf) -> Result<ApparatusMap, anyhow::Error> {
     let json5_str = std::fs::read_to_string(path)?;
-    let apparatuses: ApparatusesMap = json5::from_str(&json5_str)?;
+    let apparatuses: ApparatusMap = json5::from_str(&json5_str)?;
     Ok(apparatuses)
 }
 
@@ -38,7 +38,7 @@ mod tests {
     #[test]
     fn test_parse() {
         let path = PathBuf::from("../example_config/apparatuses.json5");
-        let apparatuses_map = parse(path).unwrap();
-        assert_eq!(apparatuses_map.len(), 4);
+        let apparatus_map = parse(&path).unwrap();
+        assert_eq!(apparatus_map.len(), 4);
     }
 }

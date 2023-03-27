@@ -1,0 +1,7 @@
+{
+    "z-01.local": {
+        login_username: "zack",
+        type: "mbpro2011",
+        connected_apparatuses: ["software-only"]
+    },
+}

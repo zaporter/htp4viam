@@ -11,12 +11,12 @@ pub struct TestSpecification {
     apparatus: String,
     robot_config: String,
     #[serde(default)]
-    sdk_test_script: Option<String>,
+    remote_test_script: Option<String>,
     #[serde(default)]
-    local_test_script: Option<String>,
+    on_device_test_script: Option<String>,
 }
 
-pub fn parse_tests(path: PathBuf) -> Result<TestMap, anyhow::Error> {
+pub fn parse(path: &PathBuf) -> Result<TestMap, anyhow::Error> {
     let json5_str = std::fs::read_to_string(path)?;
     let tests: TestMap = json5::from_str(&json5_str)?;
     Ok(tests)
@@ -28,7 +28,7 @@ mod tests {
     #[test]
     fn test_parse_tests() {
         let path = PathBuf::from("../example_config/tests.json5");
-        let test_map = parse_tests(path).unwrap();
+        let test_map = parse(&path).unwrap();
         assert_eq!(test_map.len(), 1);
         assert_eq!(test_map.get("general").unwrap().len(), 2);
     }

@@ -28,6 +28,17 @@
 
 ## How to Use
 
+### Setting up the test-orchestrator
+
+Download the install ISO from: TODO
+Run
+`sudo /iso/htp4viam/nixos/scripts/install/InstallISO.sh`
+Reboot and remove the installation medium
+Run `./htp4viam/nixos/scripts/PostInstallSetup.sh`
+
+(In the future it might be possible to combine these two steps but right now that would be difficult)
+
+
 ### Setting up a Raspberry Pi for htf4viam
 
 Setup the orchestrator
