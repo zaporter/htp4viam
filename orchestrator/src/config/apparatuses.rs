@@ -6,10 +6,10 @@ pub type ApparatusMap = HashMap<String, Apparatus>;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Apparatus {
     #[serde(default = "default_exclusively_locked")]
-    is_exclusively_locked: bool,
-    peripherals: Vec<String>,
+    pub is_exclusively_locked: bool,
+    pub peripherals: Vec<String>,
     #[serde(default)]
-    wrapped_apparatuses: Vec<String>,
+    pub wrapped_apparatuses: Vec<String>,
 }
 
 impl Default for Apparatus {

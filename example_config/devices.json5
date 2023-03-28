@@ -1,10 +1,12 @@
 {
     "testing-rpi-4b-1.local": {
         type: "rpi-4b-2gb",
+        login_username: "admin",
         connected_apparatuses: ["software-only"]
     },
     "testing-mbpro-1.local": {
         type: "mbpro-m1",
+        login_username: "admin",
         connected_apparatuses: ["software-only", "rplidar-a3"]
     }
 }

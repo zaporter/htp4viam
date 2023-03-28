@@ -6,9 +6,9 @@ pub type DeviceMap = HashMap<String, Device>;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Device {
     #[serde(rename = "type")]
-    device_type: String,
-    login_username: String,
-    connected_apparatuses: Vec<String>,
+    pub device_type: String,
+    pub login_username: String,
+    pub connected_apparatuses: Vec<String>,
 }
 
 pub fn parse(path: &PathBuf) -> Result<DeviceMap, anyhow::Error> {

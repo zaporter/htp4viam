@@ -8,7 +8,7 @@ mod ssh;
 mod config;
 mod rcfolder;
 mod resources;
-mod test_queue;
+//mod test_queue;
 pub fn main() {
     println!("Started");
     let config_path = PathBuf::from("../config");

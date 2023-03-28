@@ -13,13 +13,13 @@ pub mod device_types;
 pub mod devices;
 pub mod tests;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Config {
-    apparatuses: ApparatusMap,
-    dependencies: DependencyMap,
-    devices: DeviceMap,
-    device_types: DeviceTypeMap,
-    tests: TestMap,
+    pub apparatuses: ApparatusMap,
+    pub dependencies: DependencyMap,
+    pub devices: DeviceMap,
+    pub device_types: DeviceTypeMap,
+    pub tests: TestMap,
 }
 
 impl Config {
