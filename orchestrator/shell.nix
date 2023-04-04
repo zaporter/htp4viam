@@ -1,6 +1,6 @@
-{ pkgs ? import <nixpkgs> {} }:
-
+{pkgs ? import <nixpkgs> {}}:
 pkgs.mkShell {
+  NIX_SHELL_NAME = "orchestrator";
   buildInputs = [
     pkgs.openssl
     pkgs.pkg-config
