@@ -2,8 +2,10 @@ use std::path::PathBuf;
 
 use crate::config::Config;
 
+mod htp_test;
 mod keygen;
 mod ssh;
+mod stages;
 //mod git;
 mod config;
 mod environment;

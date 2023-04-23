@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 
-use crate::test_queue::TestID;
+use crate::htp_test::TestID;
 
 // The ResourceLedger is a very interesting data structure
 // because it is designed to allow communication between tests

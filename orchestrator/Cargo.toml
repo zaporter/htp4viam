@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 anyhow = { version = "1.0.70", features = ["backtrace"] }
 bollard = "0.14.0"
+crossbeam = { version = "0.8.2", features = ["crossbeam-channel"] }
 env_logger = "0.10.0"
 futures-util = "0.3.28"
 hyper = "0.14.25"
