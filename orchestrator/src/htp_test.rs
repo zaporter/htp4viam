@@ -10,6 +10,7 @@ use crate::{
     rcfolder::RcFolder,
     resource_ledger::ResourceLedger,
     resources::ResourceCollection,
+    statistics::StatsSink,
 };
 
 #[derive(Debug)]
@@ -27,70 +28,92 @@ pub const PRIORITY_CANARY: TestPriority = TestPriority(4, "Low (Canary)");
 
 pub type TestID = usize;
 
-#[derive(Debug)]
-pub struct TestMetadata {
-    pub config_folder: RcFolder,
-    pub config: Config,
-    pub test_spec_id: TestSpecificationID,
-    pub priority: TestPriority,
-}
-
-// Using some fancy Rust generics,
+// Using some fancy Rust generics & type system magic,
 // we only expose certain methods on tests
 // based on their current test-state.
 //
 // This is allows runtime state-transition logic
 // to be checked by the compiler.
+#[derive(Debug)]
 pub struct Queued;
-pub struct Running;
+#[derive(Debug)]
+pub struct Validated;
+#[derive(Debug)]
+pub struct Prepared;
+#[derive(Debug)]
+pub struct Aquiring;
+#[derive(Debug)]
+pub struct Runnable;
+#[derive(Debug)]
 pub struct Terminated;
+trait TestStage {}
+impl TestStage for Queued {}
+impl TestStage for Validated {}
+impl TestStage for Prepared {}
+impl TestStage for Aquiring {}
+impl TestStage for Runnable {}
+impl TestStage for Terminated {}
 
 #[derive(Debug)]
 pub struct HtpTest<Stage = Queued> {
-    pub meta: TestMetadata,
     pub id: TestID,
-    pub queue_start_time: SystemTime,
-    pub execution_start_time: Option<SystemTime>,
-    pub execution_end_time: Option<SystemTime>,
 
-    pub acquired_device_ids: Vec<String>,
-    pub acquired_apparatus_ids: Vec<String>,
+    pub config_folder: RcFolder,
+    pub config: Option<Config>,
+    pub test_spec_id: TestSpecificationID,
+    pub priority: TestPriority,
 
-    pub was_terminated_before_finished: Option<bool>,
+    pub stats_sink: StatsSink,
+
+    pub error: Option<anyhow::Error>,
 
     pub stage: std::marker::PhantomData<Stage>,
 }
 
 impl<Stage> HtpTest<Stage> {
+    // TODO : Compile time checks for this.
     pub fn get_test_group(&self) -> Option<&TestGroup> {
-        self.meta.config.tests.get(&self.meta.test_spec_id.0)
+        self.config
+            .as_ref()
+            .unwrap_or_else(|| panic!("Config cannot be accessed before validation"))
+            .tests
+            .get(&self.test_spec_id.0)
     }
     pub fn get_test_spec(&self) -> Option<&TestSpecification> {
         let test_group = self.get_test_group();
         let Some(test_group) = test_group else {
             return None
         };
-        test_group.get_test(&self.meta.test_spec_id.1)
+        test_group.get_test(&self.test_spec_id.1)
     }
-    pub fn new(meta: TestMetadata) -> anyhow::Result<HtpTest<Queued>> {
+    pub fn clone_into<T>(self) -> HtpTest<T> {
+        HtpTest {
+            id: self.id,
+            config_folder: self.config_folder,
+            config: self.config,
+            test_spec_id: self.test_spec_id,
+            priority: self.priority,
+            stats_sink: self.stats_sink,
+            error: self.error,
+            stage: PhantomData::default(),
+        }
+    }
+    pub fn new(
+        config_folder: RcFolder,
+        test_spec_id: TestSpecificationID,
+        priority: TestPriority,
+    ) -> anyhow::Result<HtpTest<Queued>> {
+        let test_id = 0; // TODO
         let test = HtpTest {
-            meta,
-            id: 0, // TODO
-            queue_start_time: SystemTime::now(),
-            execution_start_time: None,
-            execution_end_time: None,
-            was_terminated_before_finished: None,
-            acquired_device_ids: vec![],
-            acquired_apparatus_ids: vec![],
+            id: test_id,
+            config_folder,
+            config: None,
+            test_spec_id,
+            priority,
+            stats_sink: StatsSink::new(test_id),
+            error: None,
             stage: PhantomData::default(),
         };
-        // Ensure we have a valid TestSpecification to work with
-        if test.get_test_spec().is_none() {
-            return Err(anyhow!(
-                "Unable to create HtpTest for {:?} because there is no TestSpecification",
-                test.meta.test_spec_id
-            ));
-        }
         Ok(test)
     }
 }

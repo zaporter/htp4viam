@@ -10,6 +10,7 @@ anyhow = { version = "1.0.70", features = ["backtrace"] }
 bollard = "0.14.0"
 crossbeam = { version = "0.8.2", features = ["crossbeam-channel"] }
 env_logger = "0.10.0"
+futures = "0.3.28"
 futures-util = "0.3.28"
 hyper = "0.14.25"
 json5 = "0.4.1"
@@ -17,6 +18,7 @@ log = "0.4.17"
 openssl = "0.10.48"
 serde = { version = "1.0.157", features = ["derive"] }
 ssh2 = "0.9.4"
+thiserror = "1.0.40"
 tokio = { version = "1.26.0", features = ["full", "time"] }
 tokio-util = "0.7.7"
 

@@ -9,3 +9,7 @@ Steps to a MVP:
 
 Later:
 Split config out to seperate repo
+
+
+cargo fix
+refactor test stages to use advanced traits with interior types. 

@@ -1,90 +1,90 @@
-use std::{marker::PhantomData, time::SystemTime};
+// use std::{marker::PhantomData, time::SystemTime};
 
-use anyhow::anyhow;
+// use anyhow::anyhow;
 
-use crate::{
-    config::{
-        tests::{TestGroup, TestSpecification, TestSpecificationID},
-        Config,
-    },
-    htp_test::{HtpTest, Queued, Running, Terminated, TestID},
-    rcfolder::RcFolder,
-    resource_ledger::ResourceLedger,
-    resources::ResourceCollection,
-};
+// use crate::{
+//     config::{
+//         tests::{TestGroup, TestSpecification, TestSpecificationID},
+//         Config,
+//     },
+//     htp_test::{HtpTest, Queued, Running, Terminated, TestID, Validated},
+//     rcfolder::RcFolder,
+//     resource_ledger::ResourceLedger,
+//     resources::ResourceCollection,
+// };
 
-impl HtpTest<Queued> {
-    pub fn device_dependencies_satisfied(&self) -> bool {
-        self.acquired_device_ids.len() > 0
-    }
-    pub fn try_acquire_devices(&mut self, device_ledger: &mut ResourceLedger) {
-        // checked to be !none in new()
-        let test_spec = (*self.get_test_spec().unwrap()).clone();
-        for (device_id, device) in &self.meta.config.devices {
-            if self.device_dependencies_satisfied() {
-                return;
-            }
-            if device.connected_apparatuses.contains(&test_spec.apparatus) {
-                let success = device_ledger
-                    .acquire_resource(self.id, &device_id, true)
-                    .is_ok();
-                if success {
-                    self.acquired_device_ids.push(device_id.clone());
-                }
-            }
-        }
-    }
+// impl HtpTest<Validated> {
+//     pub fn device_dependencies_satisfied(&self) -> bool {
+//         self.acquired_device_ids.len() > 0
+//     }
+//     pub fn try_acquire_devices(&mut self, device_ledger: &mut ResourceLedger) {
+//         // checked to be !none in new()
+//         let test_spec = (*self.get_test_spec().unwrap()).clone();
+//         for (device_id, device) in &self.meta.config.devices {
+//             if self.device_dependencies_satisfied() {
+//                 return;
+//             }
+//             if device.connected_apparatuses.contains(&test_spec.apparatus) {
+//                 let success = device_ledger
+//                     .acquire_resource(self.id, &device_id, true)
+//                     .is_ok();
+//                 if success {
+//                     self.acquired_device_ids.push(device_id.clone());
+//                 }
+//             }
+//         }
+//     }
 
-    pub fn apparatus_dependencies_satisfied(&self) -> bool {
-        self.acquired_apparatus_ids.len() > 0
-    }
-    pub fn try_acquire_apparatuses(&mut self, apparatus_ledger: &mut ResourceLedger) {
-        // checked to be !none in new()
-        let test_spec = self.get_test_spec().unwrap();
+//     pub fn apparatus_dependencies_satisfied(&self) -> bool {
+//         self.acquired_apparatus_ids.len() > 0
+//     }
+//     pub fn try_acquire_apparatuses(&mut self, apparatus_ledger: &mut ResourceLedger) {
+//         // checked to be !none in new()
+//         let test_spec = self.get_test_spec().unwrap();
 
-        if self.apparatus_dependencies_satisfied() {
-            return;
-        }
+//         if self.apparatus_dependencies_satisfied() {
+//             return;
+//         }
 
-        let success = apparatus_ledger
-            .acquire_resource(self.id, &test_spec.apparatus, true)
-            .is_ok();
-        if success {
-            self.acquired_device_ids.push(test_spec.apparatus.clone());
-        }
-    }
-    pub fn can_start(&self) -> bool {
-        self.apparatus_dependencies_satisfied() && self.device_dependencies_satisfied()
-    }
-    pub fn try_start(self) -> anyhow::Result<HtpTest<Running>> {
-        // TODO
-        // Actually start it...
-        Ok(HtpTest {
-            meta: self.meta,
-            id: self.id,
-            queue_start_time: self.queue_start_time,
-            execution_start_time: Some(SystemTime::now()),
-            execution_end_time: self.execution_end_time,
-            acquired_device_ids: self.acquired_device_ids,
-            acquired_apparatus_ids: self.acquired_apparatus_ids,
-            was_terminated_before_finished: self.was_terminated_before_finished,
-            stage: PhantomData::default(),
-        })
-    }
-}
-impl HtpTest<Running> {
-    pub fn is_finished(&self) -> bool {
-        todo!()
-    }
-    pub fn terminate(&mut self) -> anyhow::Result<HtpTest<Terminated>> {
-        if !self.is_finished() {
-            self.was_terminated_before_finished = Some(true);
-        }
-        self.execution_end_time = Some(SystemTime::now());
-        todo!()
-    }
-}
-impl HtpTest<Terminated> {}
+//         let success = apparatus_ledger
+//             .acquire_resource(self.id, &test_spec.apparatus, true)
+//             .is_ok();
+//         if success {
+//             self.acquired_device_ids.push(test_spec.apparatus.clone());
+//         }
+//     }
+//     pub fn can_start(&self) -> bool {
+//         self.apparatus_dependencies_satisfied() && self.device_dependencies_satisfied()
+//     }
+//     pub fn try_start(self) -> anyhow::Result<HtpTest<Running>> {
+//         // TODO
+//         // Actually start it...
+//         Ok(HtpTest {
+//             meta: self.meta,
+//             id: self.id,
+//             queue_start_time: self.queue_start_time,
+//             execution_start_time: Some(SystemTime::now()),
+//             execution_end_time: self.execution_end_time,
+//             acquired_device_ids: self.acquired_device_ids,
+//             acquired_apparatus_ids: self.acquired_apparatus_ids,
+//             was_terminated_before_finished: self.was_terminated_before_finished,
+//             stage: PhantomData::default(),
+//         })
+//     }
+// }
+// impl HtpTest<Running> {
+//     pub fn is_finished(&self) -> bool {
+//         todo!()
+//     }
+//     pub fn terminate(&mut self) -> anyhow::Result<HtpTest<Terminated>> {
+//         if !self.is_finished() {
+//             self.was_terminated_before_finished = Some(true);
+//         }
+//         self.execution_end_time = Some(SystemTime::now());
+//         todo!()
+//     }
+// }
+// impl HtpTest<Terminated> {}
 
 // #[derive(Default, Debug)]
 // struct TestOrchestrator {
