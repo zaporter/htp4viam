@@ -33,7 +33,7 @@ impl TestGroup {
     }
 }
 
-#[derive(Debug, Clone,Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TestSpecification {
     pub name: String,
     pub dependencies: HashMap<String, String>,

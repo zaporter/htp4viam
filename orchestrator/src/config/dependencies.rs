@@ -1,16 +1,16 @@
-use std::{collections::HashMap, path::PathBuf};
 use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, path::PathBuf};
 
 pub type DependencyMap = HashMap<String, DependencySpecification>;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DependencySpecification {
     url: String,
     run_on_device: bool,
     targets: Vec<Target>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Target {
     device_types: Vec<String>,
     build_on_device: bool,

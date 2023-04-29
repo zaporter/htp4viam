@@ -8,15 +8,15 @@ use crate::{
     htp_test::{HtpTest, Prepared, Queued, Runnable, Terminated, Validated},
 };
 
-pub struct Aquirer {
-    input: Receiver<HtpTest<Prepared>>,
-    output: Sender<HtpTest<Runnable>>,
+pub struct Preparer {
+    input: Receiver<HtpTest<Validated>>,
+    output: Sender<HtpTest<Prepared>>,
     output_terminated: Sender<HtpTest<Terminated>>,
 }
-impl Aquirer {
+impl Preparer {
     pub fn new(
-        input: Receiver<HtpTest<Prepared>>,
-        output: Sender<HtpTest<Runnable>>,
+        input: Receiver<HtpTest<Validated>>,
+        output: Sender<HtpTest<Prepared>>,
         output_terminated: Sender<HtpTest<Terminated>>,
     ) -> Self {
         Self {
@@ -30,30 +30,30 @@ impl Aquirer {
         tokio::time::Duration::from_millis(100)
     }
     pub fn process_one(&mut self) -> anyhow::Result<()> {
-        let Ok(mut to_aquire) = self.input.try_recv() else {
+        let Ok(mut to_prepare) = self.input.try_recv() else {
             return Ok(());
         };
 
-        to_aquire.stats_sink.write("aquisition", "started");
-        let aquired = to_aquire.aquire();
-        match aquired {
-            Ok(mut aquired) => {
-                aquired
+        to_prepare.stats_sink.write("preperation", "started");
+        let prepared = to_prepare.prepare();
+        match prepared {
+            Ok(mut prepared) => {
+                prepared
                     .stats_sink
-                    .write("aquisition", "finished successfully");
+                    .write("preperation", "finished successfully");
 
-                self.output.send(aquired)?
+                self.output.send(prepared)?
             }
-            Err(mut aquire_error) => {
-                aquire_error
+            Err(mut prepare_error) => {
+                prepare_error
                     .terminated
                     .stats_sink
-                    .write("aquisition", "failed");
-                println!("Err: {}", aquire_error.msg);
-                self.output_terminated.send(aquire_error.terminated)?
+                    .write("preperation", "failed");
+                println!("Err: {}", prepare_error.msg);
+                self.output_terminated.send(prepare_error.terminated)?
             }
         };
-        println!("Aquired");
+        println!("Prepared");
         Ok(())
     }
     pub fn close(&mut self) -> anyhow::Result<()> {
@@ -63,22 +63,22 @@ impl Aquirer {
 }
 
 #[derive(thiserror::Error, Debug)]
-#[error("Aquisition error: {msg}")]
-pub struct AquisitionError {
+#[error("Preperation error: {msg}")]
+pub struct PreperationError {
     msg: String,
     #[source]
     source: anyhow::Error,
     terminated: HtpTest<Terminated>,
 }
 
-impl HtpTest<Prepared> {
-    pub fn aquire(self) -> Result<HtpTest<Runnable>, AquisitionError> {
+impl HtpTest<Validated> {
+    pub fn prepare(self) -> Result<HtpTest<Prepared>, PreperationError> {
         // TODO
         let ok: anyhow::Result<()> = Ok(());
 
         match ok {
             Ok(()) => Ok(self.clone_into()),
-            Err(err) => Err(AquisitionError {
+            Err(err) => Err(PreperationError {
                 msg: "Config creation failed".into(),
                 source: err,
                 terminated: self.clone_into(),

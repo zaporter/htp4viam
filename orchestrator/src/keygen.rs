@@ -1,13 +1,14 @@
-use std::process::Command;
-use std::path::PathBuf;
 use std::io::{Error, ErrorKind};
+use std::path::PathBuf;
+use std::process::Command;
 
-
-// 
+//
 // sed 's/PLACEHOLDER_PUBLIC_KEY/'"$(cat public_key.txt | tr -d '\n')"'/' install_public_key.sh > new_install_public_key.sh
 //
 pub fn gen_ssh_key(path: &PathBuf) -> Result<(), std::io::Error> {
-    let key_path = path.to_str().ok_or_else(|| Error::new(ErrorKind::Other, "Invalid path"))?;
+    let key_path = path
+        .to_str()
+        .ok_or_else(|| Error::new(ErrorKind::Other, "Invalid path"))?;
     let output = Command::new("ssh-keygen")
         .arg("-t")
         .arg("rsa")
@@ -24,6 +25,9 @@ pub fn gen_ssh_key(path: &PathBuf) -> Result<(), std::io::Error> {
         Ok(())
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        Err(Error::new(ErrorKind::Other, format!("ssh-keygen error: {}", stderr)))
+        Err(Error::new(
+            ErrorKind::Other,
+            format!("ssh-keygen error: {}", stderr),
+        ))
     }
 }

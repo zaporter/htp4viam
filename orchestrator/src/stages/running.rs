@@ -69,7 +69,7 @@ pub struct RunningError {
 impl HtpTest<Runnable> {
     pub fn run(mut self) -> Result<HtpTest<Terminated>, RunningError> {
         // TODO
-        let command = &self.get_test_spec().unwrap().on_device_test_script;
+        let command = &self.get_test_spec().on_device_test_script;
         if let Some(command) = command {
             let output = Command::new("sh")
                 .arg("-c")

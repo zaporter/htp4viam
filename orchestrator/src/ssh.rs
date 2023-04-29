@@ -9,17 +9,15 @@ pub fn ssh_test() {
 
     let ssh2_path = PathBuf::from("/home/zack/.ssh/id_rsa_orchestrator");
 
-// Generate a new RSA key pair with 4096 bits
+    // Generate a new RSA key pair with 4096 bits
     // Connect to the local SSH server
     let tcp = TcpStream::connect("rama.local:22").unwrap();
     let mut sess = Session::new().unwrap();
     sess.set_tcp_stream(tcp);
     sess.handshake().unwrap();
-    sess.userauth_pubkey_file(
-        "zack",
-        None,
-        &ssh2_path, None).unwrap();
-//sess.userauth_password("zack", "fr4fdsas").unwrap();
+    sess.userauth_pubkey_file("zack", None, &ssh2_path, None)
+        .unwrap();
+    //sess.userauth_password("zack", "fr4fdsas").unwrap();
 
     let mut channel = sess.channel_session().unwrap();
     channel.exec("ls").unwrap();

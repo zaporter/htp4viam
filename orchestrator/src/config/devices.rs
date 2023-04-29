@@ -1,5 +1,5 @@
-use std::{collections::HashMap, path::PathBuf};
 use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, path::PathBuf};
 
 pub type DeviceMap = HashMap<String, Device>;
 
@@ -17,7 +17,6 @@ pub fn parse(path: &PathBuf) -> Result<DeviceMap, anyhow::Error> {
     Ok(devices)
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -29,4 +28,3 @@ mod tests {
         assert_eq!(devices_map.len(), 2);
     }
 }
-

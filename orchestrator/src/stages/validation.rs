@@ -1,10 +1,11 @@
 use std::{marker::PhantomData, time::SystemTime};
 
+use anyhow::anyhow;
 use crossbeam::channel::{Receiver, Sender};
 
 use crate::{
     config::Config,
-    htp_test::{HtpTest, Queued, Terminated, Validated},
+    htp_test::{Dependency, HtpTest, Queued, Terminated, Validated},
 };
 
 pub struct Validator {
@@ -75,10 +76,65 @@ impl HtpTest<Queued> {
     pub fn validate(mut self) -> Result<HtpTest<Validated>, ValidateError> {
         // TODO
         // Actually start it...
-        let config = Config::new(self.config_folder.get_path());
+        let config = Config::new(&self.config_folder.0);
         match config {
             Ok(config) => {
+                // Ensure we can run get_test_group()
+                // and get_test_spec() with this config
+                let test_group = config.tests.get(&self.test_spec_id.0);
+                let test_group = match test_group {
+                    Some(k) => k,
+                    None => {
+                        return Err(ValidateError {
+                            msg: "Unable to find test group for test specification".into(),
+                            source: anyhow!("Config creation"),
+                            terminated: self.clone_into(),
+                        });
+                    }
+                };
+                let test_specification = test_group.get_test(&self.test_spec_id.1);
+                let test_specification = match test_specification {
+                    Some(k) => k,
+                    None => {
+                        return Err(ValidateError {
+                            msg: "Unable to find test specification in test group".into(),
+                            source: anyhow!("Config creation"),
+                            terminated: self.clone_into(),
+                        });
+                    }
+                };
+                // prepare dependencies
+                let mut dependencies = Vec::new();
+                for dep_name in test_specification.dependencies.keys() {
+                    self.stats_sink
+                        .write("validation", format!("Creating dependency on {}", dep_name));
+                    let dep_spec = config.dependencies.get(dep_name);
+                    let dep_spec = match dep_spec {
+                        Some(k) => k,
+                        None => {
+                            return Err(ValidateError {
+                                msg: "Unable to find specified dependency".into(),
+                                source: anyhow!("Config creation"),
+                                terminated: self.clone_into(),
+                            });
+                        }
+                    };
+                    let dep = Dependency::new(&self.orchestrator_config, dep_name, dep_spec);
+                    match dep {
+                        Ok(dep) => dependencies.push(dep),
+                        Err(err) => {
+                            return Err(ValidateError {
+                                msg: "Unable to find create a dependency".into(),
+                                source: err,
+                                terminated: self.clone_into(),
+                            });
+                        }
+                    }
+                }
+                self.dependencies = Some(dependencies);
+                // set the config
                 self.config = Some(config);
+
                 Ok(self.clone_into())
             }
             Err(err) => Err(ValidateError {

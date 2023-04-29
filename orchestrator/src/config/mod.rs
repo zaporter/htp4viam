@@ -11,6 +11,7 @@ pub mod apparatuses;
 pub mod dependencies;
 pub mod device_types;
 pub mod devices;
+pub mod orchestrator_config;
 pub mod tests;
 
 #[derive(Debug, Default)]
@@ -40,16 +41,13 @@ impl Config {
     }
 }
 
-
 #[cfg(test)]
 mod test_mod {
     use super::*;
     #[test]
-    fn test_parse() -> anyhow::Result<()>{
+    fn test_parse() -> anyhow::Result<()> {
         let base_path = PathBuf::from("../example_config");
         let _ = Config::new(&base_path)?;
         Ok(())
     }
-
 }
-

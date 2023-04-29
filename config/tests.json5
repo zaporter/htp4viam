@@ -3,6 +3,7 @@
         {
             name: "simpleconn",
             dependencies: {
+                viam_server_static:"HEAD",
             },
             excluded_device_types: [],
             apparatus: "software_only",

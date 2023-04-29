@@ -1,3 +1,15 @@
 {
+    viam_server_static: {
+        url : "http://packages.viam.com/apps/viam-server/viam-server-latest-x86_64",
+        run_on_device: false,
+        targets: [
+            {
+                device_types: ["viam-canon-docker"],
+                build_on_device: false,
+                build_script: "echo I build trains",
+                install_script: "echo I install trains",
+            }
+        ]
+    }
 
 }

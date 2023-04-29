@@ -1,0 +1,8 @@
+{
+    // DANGER: Ask someone before touching this
+    htp_folder_root: "/home/zack/htpout",
+    // DANGER: Ask someone before touching this
+    persist_test_runs: true,
+    host_addr: "helicon.local",
+    loki_addr: "loki.helicon.local",
+}
