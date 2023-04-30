@@ -1,14 +1,16 @@
-use std::{marker::PhantomData, path::PathBuf, time::SystemTime};
+use std::{any, marker::PhantomData, path::PathBuf, time::SystemTime};
 
 use anyhow::{anyhow, Context};
 
 use crate::{
     config::{
         dependencies::DependencySpecification,
+        device_types::{DeviceClassification, DeviceType, DockerSpec},
         orchestrator_config::OrchestratorConfig,
         tests::{TestGroup, TestSpecification, TestSpecificationID},
         Config,
     },
+    environment::docker_env::DockerEnvironment,
     folder::{DependencyFolderType, HtpFolder, TestFolderType},
     resource_ledger::ResourceLedger,
     resources::ResourceCollection,
@@ -173,11 +175,27 @@ where
             .as_mut()
             .unwrap_or_else(|| panic!("Config got past validation without creating dependencies"))
     }
+    pub fn test_mount_map(&self, inner_htp_root: &PathBuf) -> EnvironmentMountMap {
+        let mut map = EnvironmentMountMap::new();
+        map.0.push(MountMapSet {
+            env_var: "HTP_CONFIG".into(),
+            host_path: self.config_folder.0.clone(),
+            inner_path: inner_htp_root.join("config"),
+        });
+
+        map.0.push(MountMapSet {
+            env_var: "HTP_PERSIST".into(),
+            host_path: self.persist_folder.0.clone(),
+            inner_path: inner_htp_root.join("persist"),
+        });
+        map
+    }
 }
 
 #[derive(Debug)]
 pub struct Dependency {
     pub name: String,
+    pub ver: String,
     pub spec: DependencySpecification,
     pub build_input_folder: HtpFolder,
     pub build_output_folder: HtpFolder,
@@ -188,25 +206,141 @@ impl Dependency {
         name: &str,
         specification: &DependencySpecification,
     ) -> anyhow::Result<Self> {
+        //TODO
+        let ver = "VER";
         let build_input_folder = HtpFolder::new_dependency(
             orchestrator_config,
             DependencyFolderType::BuildInput,
             name,
-            "0",
+            ver,
         )
         .context("failed to create build input folder")?;
         let build_output_folder = HtpFolder::new_dependency(
             orchestrator_config,
             DependencyFolderType::BuildOutput,
             name,
-            "0",
+            ver,
         )
         .context("failed to create build output folder")?;
         Ok(Self {
             name: name.into(),
+            ver: ver.into(),
             spec: specification.clone(),
             build_input_folder,
             build_output_folder,
         })
+    }
+    pub fn dependency_mount_map(&self, inner_mount_root: &PathBuf) -> EnvironmentMountMap {
+        let mut map = EnvironmentMountMap::default();
+
+        let inner_root_path = inner_mount_root
+            .join("dependencies")
+            .join(format!("{}-{}", self.name, self.ver));
+        map.0.push(MountMapSet {
+            env_var: "HTP_BUILD_INPUT".into(),
+            host_path: self.build_input_folder.0.clone(),
+            inner_path: inner_root_path.join("input"),
+        });
+        map.0.push(MountMapSet {
+            env_var: "HTP_BUILD_OUTPUT".into(),
+            host_path: self.build_output_folder.0.clone(),
+            inner_path: inner_root_path.join("output"),
+        });
+
+        map
+    }
+
+    // TODO: add protection to ensure this isn't called multiple times at once
+    pub async fn build(&self, build_target_type: &DeviceType) -> anyhow::Result<()> {
+        if let DeviceClassification::Docker(spec) = &build_target_type.classification {
+            log::info!("Starting docker container");
+            let mount_map = self.dependency_mount_map(&spec.htp_root);
+            let container_config = bollard::container::Config {
+                image: Some(spec.image.clone()),
+                tty: Some(true),
+                host_config: Some(bollard::service::HostConfig {
+                    binds: Some(mount_map.mount_points()?),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            };
+            let mut env = DockerEnvironment::new(&spec, container_config).await?;
+
+            env.exec(bollard::exec::CreateExecOptions {
+                env: Some(mount_map.env_vars()?),
+                cmd: Some(vec![
+                    "/bin/bash".into(),
+                    "-c".into(),
+                    self.spec.build_script.clone(),
+                ]),
+                ..Default::default()
+            })
+            .await?;
+            // env.exec(&dep.spec.build_script).await.unwrap();
+            env.shutdown().await?;
+            return Ok(());
+        }
+        todo!()
+    }
+    pub async fn install_on(
+        &self,
+        spec: &DockerSpec,
+        env: &mut DockerEnvironment,
+    ) -> anyhow::Result<()> {
+        let mount_map = self.dependency_mount_map(&spec.htp_root);
+        env.exec(bollard::exec::CreateExecOptions {
+            env: Some(mount_map.env_vars()?),
+            cmd: Some(vec![
+                "/bin/bash".into(),
+                "-c".into(),
+                self.spec.install_script.clone(),
+            ]),
+            ..Default::default()
+        })
+        .await?;
+
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct EnvironmentMountMap(pub Vec<MountMapSet>);
+#[derive(Debug, Clone)]
+pub struct MountMapSet {
+    pub env_var: String,
+    pub host_path: PathBuf,
+    pub inner_path: PathBuf,
+}
+impl EnvironmentMountMap {
+    pub fn new() -> Self {
+        Self::default()
+    }
+    pub fn env_vars(&self) -> anyhow::Result<Vec<String>> {
+        let mut env_vars = Vec::new();
+        for set in &self.0 {
+            env_vars.push(format!(
+                "{}={}",
+                set.env_var,
+                set.inner_path
+                    .to_str()
+                    .ok_or(anyhow!("Failed to convert inner path to str"))?
+            ))
+        }
+        Ok(env_vars)
+    }
+    pub fn mount_points(&self) -> anyhow::Result<Vec<String>> {
+        let mut mount_points = Vec::new();
+        for set in &self.0 {
+            mount_points.push(format!(
+                "{}:{}",
+                set.host_path
+                    .to_str()
+                    .ok_or(anyhow!("Cannot convert input path to str"))?,
+                set.inner_path
+                    .to_str()
+                    .ok_or(anyhow!("cannot convert inner input path to str"))?
+            ));
+        }
+        Ok(mount_points)
     }
 }

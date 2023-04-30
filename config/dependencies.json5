@@ -2,8 +2,15 @@
     viam_server_static: {
         url : "http://packages.viam.com/apps/viam-server/viam-server-latest-x86_64",
         build_on: "viam_canon_docker",
-        build_script: "cd $HTP_BUILD_OUTPUT && wget http://packages.viam.com/apps/viam-server/viam-server-latest-x86_64",
-        install_script: "echo I install trains ",
+        build_script: "cd $HTP_BUILD_OUTPUT && wget http://packages.viam.com/apps/viam-server/viam-server-latest-x86_64 -O viam-server",
+        install_script: "chmod +x $HTP_BUILD_OUTPUT/viam-server && cp $HTP_BUILD_OUTPUT/viam-server /usr/bin",
+    },
+
+    viam_python_sdk: {
+        url : "http://packages.viam.com/apps/viam-server/viam-server-latest-x86_64",
+        build_on: "viam_canon_docker",
+        build_script: "",
+        install_script: "pip install viam-sdk",
     },
 
 }

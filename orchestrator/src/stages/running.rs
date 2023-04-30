@@ -1,11 +1,15 @@
-use std::{marker::PhantomData, process::Command, time::SystemTime};
+use std::{marker::PhantomData, path::PathBuf, process::Command, time::SystemTime};
 
 use anyhow::anyhow;
 use crossbeam::channel::{Receiver, Sender};
+use futures_util::__private::async_await;
 
 use crate::{
-    config::Config,
-    htp_test::{HtpTest, Queued, Runnable, Terminated, Validated},
+    config::{device_types::DockerSpec, Config},
+    environment::docker_env::DockerEnvironment,
+    htp_test::{
+        EnvironmentMountMap, HtpTest, MountMapSet, Queued, Runnable, Terminated, Validated,
+    },
 };
 
 pub struct Runner {
@@ -29,13 +33,13 @@ impl Runner {
     pub fn desired_poll_delay(&mut self) -> tokio::time::Duration {
         tokio::time::Duration::from_millis(100)
     }
-    pub fn process_one(&mut self) -> anyhow::Result<()> {
+    pub async fn process_one(&mut self) -> anyhow::Result<()> {
         let Ok(mut to_run) = self.input.try_recv() else {
             return Ok(());
         };
 
         to_run.stats_sink.write("running", "started");
-        let rund = to_run.run();
+        let rund = to_run.run().await;
         match rund {
             Ok(mut rund) => {
                 rund.stats_sink.write("running", "finished successfully");
@@ -67,24 +71,63 @@ pub struct RunningError {
 }
 
 impl HtpTest<Runnable> {
-    pub fn run(mut self) -> Result<HtpTest<Terminated>, RunningError> {
-        // TODO
-        let command = &self.get_test_spec().on_device_test_script;
-        if let Some(command) = command {
-            let output = Command::new("sh")
-                .arg("-c")
-                .arg(command)
-                .output()
-                .expect("failed to run cmd");
-            let out: String = String::from_utf8(output.stdout).unwrap();
-            self.stats_sink.write("running", out);
-            return Ok(self.clone_into());
+    pub async fn run(mut self) -> Result<HtpTest<Terminated>, RunningError> {
+        // TODO support non-docker
+        let spec = DockerSpec {
+            image: "ghcr.io/viamrobotics/canon:amd64-cache".into(),
+            htp_root: "/htp".into(),
+        };
+
+        let test_mount_map = self.test_mount_map(&spec.htp_root);
+
+        let mut mount_points = Vec::new();
+
+        mount_points.append(&mut test_mount_map.clone().mount_points().unwrap());
+
+        for dep in self.dependencies() {
+            // TODO support non-docker
+            let mount_map = dep.dependency_mount_map(&spec.htp_root);
+            mount_points.append(&mut mount_map.mount_points().unwrap())
         }
 
-        Err(RunningError {
-            msg: "Running creation failed, no cmd to run".into(),
-            source: anyhow!("Nope"),
-            terminated: self.clone_into(),
+        let container_config = bollard::container::Config {
+            image: Some(spec.image.clone()),
+            tty: Some(true),
+            host_config: Some(bollard::service::HostConfig {
+                binds: Some(mount_points),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let mut env = DockerEnvironment::new(&spec, container_config)
+            .await
+            .unwrap();
+        for dep in self.dependencies() {
+            // TODO support non-docker
+            let install_result = dep.install_on(&spec, &mut env).await;
+            if let Err(install_result) = install_result {
+                return Err(RunningError {
+                    msg: "Failed to install dep".into(),
+                    source: install_result,
+                    terminated: self.clone_into(),
+                });
+            }
+        }
+        let command = &self.get_test_spec().on_device_test_script.as_ref().unwrap();
+
+        env.exec(bollard::exec::CreateExecOptions {
+            env: Some(test_mount_map.env_vars().unwrap()),
+            working_dir: Some(spec.htp_root.join("config").to_str().unwrap().into()),
+            cmd: Some(vec![
+                "/bin/bash".into(),
+                "-c".into(),
+                command.clone().into(),
+            ]),
+            ..Default::default()
         })
+        .await
+        .unwrap();
+        env.shutdown().await.unwrap();
+        Ok(self.clone_into())
     }
 }

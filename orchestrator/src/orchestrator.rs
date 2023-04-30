@@ -100,7 +100,7 @@ impl Orchestrator {
                     return runner.close();
                 }
                 tokio::time::sleep(runner.desired_poll_delay()).await;
-                runner.process_one()?;
+                runner.process_one().await?;
             }
         });
         let close_receiver_inst = close_receiver.clone();
@@ -129,6 +129,7 @@ impl Orchestrator {
         let orchestrator_config =
             orchestrator_config::parse(&config_path.join("orchestrator.json5"))
                 .context("Orchestrator parsing")?;
+        std::fs::remove_dir_all(&orchestrator_config.htp_folder_root)?;
         let test_spec_id = ("general".into(), "simpleconn".into());
         let priority = PRIORITY_ADMIN;
         let test =

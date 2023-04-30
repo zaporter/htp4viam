@@ -43,21 +43,21 @@ impl DockerEnvironment {
     }
     // This does not have to be mutable but I am using the borrow checker to ensure
     // this isn't concurrently modified
-    pub async fn exec(&mut self, command: &str) -> anyhow::Result<()> {
-        log::info!("Executing {command} in docker container");
+    pub async fn exec_simple(&mut self, command: &str) -> anyhow::Result<()> {
+        self.exec(CreateExecOptions {
+            attach_stdout: Some(true),
+            attach_stderr: Some(true),
+            cmd: Some(vec!["/bin/bash".into(), "-c".into(), command.into()]),
+            ..Default::default()
+        })
+        .await
+    }
+    pub async fn exec(&mut self, mut options: CreateExecOptions<String>) -> anyhow::Result<()> {
+        options.attach_stdout = Some(true);
+        options.attach_stderr = Some(true);
+        log::info!("Executing {:?} in docker container", options.cmd);
         let docker = Docker::connect_with_socket_defaults()?;
-        let exec = docker
-            .create_exec(
-                &self.container_id,
-                CreateExecOptions {
-                    attach_stdout: Some(true),
-                    attach_stderr: Some(true),
-                    cmd: Some(vec!["/bin/bash", "-c", command]),
-                    ..Default::default()
-                },
-            )
-            .await?
-            .id;
+        let exec = docker.create_exec(&self.container_id, options).await?.id;
         if let StartExecResults::Attached { mut output, .. } =
             docker.start_exec(&exec, None).await?
         {

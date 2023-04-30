@@ -37,7 +37,7 @@ pub fn main() {
     // run().unwrap();
     let mut orchestrator = Orchestrator::new();
     orchestrator.start().unwrap();
-    std::thread::sleep(Duration::from_millis(500));
+    std::thread::sleep(Duration::from_millis(50000));
     orchestrator.stop().unwrap();
     log::info!("Finished");
 }

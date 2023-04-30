@@ -4,12 +4,12 @@
             name: "simpleconn",
             dependencies: {
                 viam_server_static:"HEAD",
+                viam_python_sdk:"HEAD",
             },
             excluded_device_types: [],
             apparatus: "software_only",
             robot_config: "./robot_cfgs/empty.json",
-            // optional
-            on_device_test_script: "echo hi"
+            on_device_test_script: "(/usr/bin/viam-server --config ./robot_cfgs/fake.json &) && sleep 5 && python3 ./tests/fake_img/run.py"
         },
     ]
 }
