@@ -5,17 +5,10 @@ pub type DependencyMap = HashMap<String, DependencySpecification>;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DependencySpecification {
-    url: String,
-    run_on_device: bool,
-    targets: Vec<Target>,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Target {
-    device_types: Vec<String>,
-    build_on_device: bool,
-    build_script: String,
-    install_script: String,
+    pub url: String,
+    pub build_on: String,
+    pub build_script: String,
+    pub install_script: String,
 }
 
 pub fn parse(path: &PathBuf) -> Result<DependencyMap, anyhow::Error> {
@@ -34,9 +27,5 @@ mod tests {
         assert_eq!(dependencies_map.len(), 1);
         let spec = dependencies_map.get("viam_server_appimage").unwrap();
         assert_eq!(spec.url, "https://github.com/viamrobotics/rdk");
-        assert_eq!(spec.run_on_device, true);
-        let target = &spec.targets[0];
-        assert_eq!(target.device_types, vec!["*"]);
-        assert_eq!(target.build_on_device, false);
     }
 }

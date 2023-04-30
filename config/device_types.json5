@@ -2,6 +2,13 @@
     mbpro2011 : {
         architecture: "aarch64",
         os: "macOS",
-        os_version: "Something old",
-    }
+        classification: "real",
+    },
+    viam_canon_docker: {
+        architecture: "x86_64",
+        os: "Ubuntu",
+        classification: "docker",
+        image: "ghcr.io/viamrobotics/canon:amd64-cache",
+        htp_root: "/htp",
+    },
 }

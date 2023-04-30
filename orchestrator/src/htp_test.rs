@@ -177,10 +177,10 @@ where
 
 #[derive(Debug)]
 pub struct Dependency {
-    name: String,
-    specification: DependencySpecification,
-    build_input_folder: HtpFolder,
-    build_output_folder: HtpFolder,
+    pub name: String,
+    pub spec: DependencySpecification,
+    pub build_input_folder: HtpFolder,
+    pub build_output_folder: HtpFolder,
 }
 impl Dependency {
     pub fn new(
@@ -204,7 +204,7 @@ impl Dependency {
         .context("failed to create build output folder")?;
         Ok(Self {
             name: name.into(),
-            specification: specification.clone(),
+            spec: specification.clone(),
             build_input_folder,
             build_output_folder,
         })

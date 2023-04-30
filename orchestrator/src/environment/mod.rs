@@ -1,5 +1,5 @@
 mod docker;
-pub mod docker2;
+pub mod docker_env;
 
 pub trait Environment {
     fn setup(&mut self);

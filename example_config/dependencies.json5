@@ -1,23 +1,16 @@
 {
     viam_server_appimage: {
         url: "https://github.com/viamrobotics/rdk",
-        run_on_device: true,
-        targets: [
-            {
-                device_types: ["*"],
-                build_on_device: false,
-                build_script: "                \
-                    ... build the appimage ... \
-                ",
-                install_script: " \
-                    cp ./deps/viam-server/viam-server.AppImage viam-server \
-                    chmod 755 viam-server \
-                    sudo ./viam-server -aix-install \
+        build_on: "*",
+        build_script: "                \
+            ... build the appimage ... \
+        ",
+        install_script: " \
+            cp ./deps/viam-server/viam-server.AppImage viam-server \
+            chmod 755 viam-server \
+            sudo ./viam-server -aix-install \
                 "
 
-            }
-
-        ]
 
     }
 

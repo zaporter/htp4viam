@@ -2,11 +2,18 @@
     rpi_4b_2gb : {
         architecture: "aarch64",
         os: "raspbian",
-        os_version: "22.11 (bullseye)",
+        classification: "real",
     },
     mbpro_m1 : {
         architecture: "aarch64",
         os: "macOS",
-        os_version: "Ventura",
-    }
+        classification: "real",
+    },
+    docker: {
+        architecture: "x86_64",
+        os: "Ubuntu",
+        classification: "docker",
+        image: "ubuntu",
+        htp_root: "/htp",
+    },
 }

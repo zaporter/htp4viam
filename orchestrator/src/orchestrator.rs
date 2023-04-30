@@ -5,10 +5,15 @@ use crossbeam::channel::Sender;
 use tokio::{runtime::Runtime, task::JoinHandle};
 
 use crate::{
-    config::{Config, orchestrator_config::{OrchestratorConfig, self}, self},
+    config::{
+        self,
+        orchestrator_config::{self, OrchestratorConfig},
+        Config,
+    },
     htp_test::{HtpTest, Queued, Validated, PRIORITY_ADMIN},
     stages::{
-        aquiring::Aquirer, running::Runner, termination::TerminatedSink, validation::Validator, preperation::Preparer,
+        aquiring::Aquirer, preperation::Preparer, running::Runner, termination::TerminatedSink,
+        validation::Validator,
     },
 };
 
@@ -75,7 +80,7 @@ impl Orchestrator {
                     return preparer.close();
                 }
                 tokio::time::sleep(preparer.desired_poll_delay()).await;
-                preparer.process_one()?;
+                preparer.process_one().await?;
             }
         });
         let close_receiver_inst = close_receiver.clone();
@@ -121,10 +126,13 @@ impl Orchestrator {
     }
     pub fn start(&mut self) -> anyhow::Result<()> {
         let config_path = PathBuf::from("../config");
-        let orchestrator_config = orchestrator_config::parse(&config_path.join("orchestrator.json5")).context("Orchestrator parsing")?;
+        let orchestrator_config =
+            orchestrator_config::parse(&config_path.join("orchestrator.json5"))
+                .context("Orchestrator parsing")?;
         let test_spec_id = ("general".into(), "simpleconn".into());
         let priority = PRIORITY_ADMIN;
-        let test = HtpTest::<Queued>::new(&config_path,orchestrator_config, test_spec_id, priority);
+        let test =
+            HtpTest::<Queued>::new(&config_path, orchestrator_config, test_spec_id, priority);
         self.main_input.send(test?)?;
         Ok(())
     }

@@ -50,7 +50,7 @@ impl Validator {
                     .terminated
                     .stats_sink
                     .write("validation", "failed");
-                println!("Err: {}", validate_error.msg);
+                log::error!("Err: {:?}", validate_error);
                 self.output_terminated.send(validate_error.terminated)?
             }
         };
@@ -129,6 +129,16 @@ impl HtpTest<Queued> {
                                 terminated: self.clone_into(),
                             });
                         }
+                    }
+                }
+                for dep in &dependencies {
+                    if !config.device_types.contains_key(&dep.spec.build_on) {
+                        return Err(ValidateError {
+                            msg: "Dependency is trying to run on a device_type that doesn't exist"
+                                .into(),
+                            source: anyhow!("Config creation"),
+                            terminated: self.clone_into(),
+                        });
                     }
                 }
                 self.dependencies = Some(dependencies);
