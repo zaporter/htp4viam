@@ -1,4 +1,10 @@
-use std::{any, marker::PhantomData, path::PathBuf, time::SystemTime};
+use std::{
+    any,
+    marker::PhantomData,
+    path::PathBuf,
+    sync::{Arc, Mutex},
+    time::SystemTime,
+};
 
 use anyhow::{anyhow, Context};
 
@@ -7,13 +13,14 @@ use crate::{
         dependencies::DependencySpecification,
         device_types::{DeviceClassification, DeviceType, DockerSpec},
         orchestrator_config::OrchestratorConfig,
-        tests::{TestGroup, TestSpecification, TestSpecificationID},
+        tests::{TestGroup, TestMap, TestSpecification, TestSpecificationID},
         Config,
     },
     environment::docker_env::DockerEnvironment,
     folder::{DependencyFolderType, HtpFolder, TestFolderType},
     resource_ledger::ResourceLedger,
     resources::ResourceCollection,
+    running_test_map::{RunningTestMap, RunningTestMapEntry},
     statistics::StatsSink,
 };
 
@@ -50,13 +57,41 @@ pub struct Aquiring;
 pub struct Runnable;
 #[derive(Debug)]
 pub struct Terminated;
-pub trait TestStage {}
-impl TestStage for Queued {}
-impl TestStage for Validated {}
-impl TestStage for Prepared {}
-impl TestStage for Aquiring {}
-impl TestStage for Runnable {}
-impl TestStage for Terminated {}
+pub trait TestStage {
+    // This could be done with core_intrinsics unsafe {type_name::<Self>}
+    // but that is an unstable feature.
+    fn name() -> String;
+}
+impl TestStage for Queued {
+    fn name() -> String {
+        "Queued".into()
+    }
+}
+impl TestStage for Validated {
+    fn name() -> String {
+        "Validated".into()
+    }
+}
+impl TestStage for Prepared {
+    fn name() -> String {
+        "Prepared".into()
+    }
+}
+impl TestStage for Aquiring {
+    fn name() -> String {
+        "Aquiring".into()
+    }
+}
+impl TestStage for Runnable {
+    fn name() -> String {
+        "Runnable".into()
+    }
+}
+impl TestStage for Terminated {
+    fn name() -> String {
+        "Terminated".into()
+    }
+}
 
 pub trait PostValidation {}
 impl PostValidation for Validated {}
@@ -81,6 +116,7 @@ pub struct HtpTest<Stage = Queued> {
     pub stats_sink: StatsSink,
 
     pub error: Option<anyhow::Error>,
+    pub test_map: Arc<Mutex<RunningTestMap>>,
 
     pub stage: std::marker::PhantomData<Stage>,
 }
@@ -94,6 +130,7 @@ where
         orchestrator_config: OrchestratorConfig,
         test_spec_id: TestSpecificationID,
         priority: TestPriority,
+        test_map: Arc<Mutex<RunningTestMap>>,
     ) -> anyhow::Result<HtpTest<Queued>> {
         let test_id = 0; // TODO
         let config_folder = HtpFolder::new_test(
@@ -109,7 +146,15 @@ where
             &test_spec_id,
             "0",
         )?;
-
+        {
+            let mut map = test_map.lock().unwrap();
+            map.map.push(RunningTestMapEntry {
+                id: test_spec_id.clone(),
+                ver: "0".into(),
+                stage: Queued::name(),
+                entry_time: SystemTime::now(),
+            });
+        }
         Ok(HtpTest {
             id: test_id,
             config_folder,
@@ -121,11 +166,22 @@ where
             priority,
             stats_sink: StatsSink::new(test_id),
             error: None,
+            test_map,
             stage: PhantomData::default(),
         })
     }
 
-    pub fn clone_into<T>(self) -> HtpTest<T> {
+    pub fn clone_into<T: TestStage>(self) -> HtpTest<T> {
+        {
+            let mut map = self.test_map.lock().unwrap();
+            let mut map_entry: &mut RunningTestMapEntry = map
+                .map
+                .iter_mut()
+                .find(|p| p.id == self.test_spec_id)
+                .unwrap();
+            map_entry.stage = T::name();
+            map_entry.entry_time = SystemTime::now();
+        }
         HtpTest {
             id: self.id,
             config_folder: self.config_folder,
@@ -137,6 +193,7 @@ where
             priority: self.priority,
             stats_sink: self.stats_sink,
             error: self.error,
+            test_map: self.test_map,
             stage: PhantomData::default(),
         }
     }
@@ -144,7 +201,7 @@ where
 
 impl<Stage> HtpTest<Stage>
 where
-    Stage: PostValidation,
+    Stage: TestStage + PostValidation,
 {
     pub fn config(&self) -> &Config {
         self.config

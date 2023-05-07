@@ -20,6 +20,7 @@ mod folder;
 mod orchestrator;
 mod resource_ledger;
 mod resources;
+mod running_test_map;
 mod statistics;
 mod test_queue;
 // #[tokio::main]
@@ -37,7 +38,9 @@ pub fn main() {
     // run().unwrap();
     let mut orchestrator = Orchestrator::new();
     orchestrator.start().unwrap();
-    std::thread::sleep(Duration::from_millis(50000));
+    while !orchestrator.is_finished() {
+        std::thread::sleep(Duration::from_millis(5000));
+    }
     orchestrator.stop().unwrap();
     log::info!("Finished");
 }

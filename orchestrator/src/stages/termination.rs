@@ -17,6 +17,12 @@ impl TerminatedSink {
             return Ok(());
         };
         println!("{:?} was terminated", to_process);
+
+        {
+            let mut map = to_process.test_map.lock().unwrap();
+            map.map.retain(|p| p.id != to_process.test_spec_id);
+        }
+
         Ok(())
     }
     pub fn close(&mut self) -> anyhow::Result<()> {

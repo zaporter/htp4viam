@@ -1,4 +1,7 @@
-use std::{path::PathBuf, sync::mpsc::Receiver};
+use std::{
+    path::PathBuf,
+    sync::{mpsc::Receiver, Arc, Mutex},
+};
 
 use anyhow::Context;
 use crossbeam::channel::Sender;
@@ -8,9 +11,11 @@ use crate::{
     config::{
         self,
         orchestrator_config::{self, OrchestratorConfig},
+        tests::TestMap,
         Config,
     },
     htp_test::{HtpTest, Queued, Validated, PRIORITY_ADMIN},
+    running_test_map::RunningTestMap,
     stages::{
         aquiring::Aquirer, preperation::Preparer, running::Runner, termination::TerminatedSink,
         validation::Validator,
@@ -19,6 +24,7 @@ use crate::{
 
 pub struct Orchestrator {
     // validator: Validator,
+    test_map: Arc<Mutex<RunningTestMap>>,
     main_input: Sender<HtpTest<Queued>>,
     validator_handle: JoinHandle<anyhow::Result<()>>,
     preparer_handle: JoinHandle<anyhow::Result<()>>,
@@ -115,6 +121,7 @@ impl Orchestrator {
         });
         Self {
             main_input,
+            test_map: Arc::new(Mutex::new(RunningTestMap::default())),
             runtime,
             validator_handle,
             preparer_handle,
@@ -132,10 +139,20 @@ impl Orchestrator {
         std::fs::remove_dir_all(&orchestrator_config.htp_folder_root)?;
         let test_spec_id = ("general".into(), "simpleconn".into());
         let priority = PRIORITY_ADMIN;
-        let test =
-            HtpTest::<Queued>::new(&config_path, orchestrator_config, test_spec_id, priority);
+        let test = HtpTest::<Queued>::new(
+            &config_path,
+            orchestrator_config,
+            test_spec_id,
+            priority,
+            Arc::clone(&self.test_map),
+        );
         self.main_input.send(test?)?;
         Ok(())
+    }
+    pub fn is_finished(&self) -> bool {
+        let mut map = self.test_map.lock().unwrap();
+        println!("{:#?}", &map);
+        map.map.is_empty()
     }
     pub fn stop(self) -> anyhow::Result<()> {
         self.close_sender.send(())?;

@@ -1,6 +1,9 @@
-use std::{marker::PhantomData, path::PathBuf, process::Command, time::SystemTime};
+use std::{
+    collections::HashMap, marker::PhantomData, path::PathBuf, process::Command, time::SystemTime,
+};
 
 use anyhow::anyhow;
+use bollard::service::PortBinding;
 use crossbeam::channel::{Receiver, Sender};
 use futures_util::__private::async_await;
 
@@ -90,11 +93,20 @@ impl HtpTest<Runnable> {
             mount_points.append(&mut mount_map.mount_points().unwrap())
         }
 
+        let mut ports = HashMap::new();
+        ports.insert(
+            "22".into(),
+            Some(vec![PortBinding {
+                host_ip: Some("localhost".into()),
+                host_port: Some("4321".into()),
+            }]),
+        );
         let container_config = bollard::container::Config {
             image: Some(spec.image.clone()),
             tty: Some(true),
             host_config: Some(bollard::service::HostConfig {
                 binds: Some(mount_points),
+                port_bindings: Some(ports),
                 ..Default::default()
             }),
             ..Default::default()
@@ -119,8 +131,10 @@ impl HtpTest<Runnable> {
             env: Some(test_mount_map.env_vars().unwrap()),
             working_dir: Some(spec.htp_root.join("config").to_str().unwrap().into()),
             cmd: Some(vec![
-                "/bin/bash".into(),
+                "/usr/bin/env".into(),
+                "bash".into(),
                 "-c".into(),
+                // "sleep 1000".into()
                 command.clone().into(),
             ]),
             ..Default::default()
