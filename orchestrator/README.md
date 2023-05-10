@@ -24,3 +24,14 @@ This is the brains of the entire platform.
 **TestExecutor**: Manages a single test
 
 **TestPlanner**: Plans how to run tests in a way that minimizes time
+
+## Software Stack
+Used programs:
+ - Nginx
+ - Grafana
+ - Prometheus
+ - Loki
+ - Promtail
+ - Tempo 
+
+I chose to invest heavily in the Grafana ecosystem because of their deep commitment to open source (cough cough influxdb 3.0) and their fantastic nix packages.

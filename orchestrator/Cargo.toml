@@ -9,6 +9,7 @@ edition = "2021"
 anyhow = { version = "1.0.70", features = ["backtrace"] }
 bollard = "0.14.0"
 crossbeam = { version = "0.8.2", features = ["crossbeam-channel"] }
+elasticsearch = "8.5.0-alpha.1"
 env_logger = "0.10.0"
 futures = "0.3.28"
 futures-util = "0.3.28"
@@ -18,6 +19,7 @@ log = "0.4.17"
 openssl = "0.10.48"
 reqwest = { version = "0.11.17", features = ["json"] }
 serde = { version = "1.0.157", features = ["derive"] }
+serde_json = "1.0.96"
 ssh2 = "0.9.4"
 thiserror = "1.0.40"
 tokio = { version = "1.26.0", features = ["full", "time"] }
