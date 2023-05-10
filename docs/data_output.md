@@ -9,8 +9,8 @@ Each test is given an owned stream into Elasticsearch when it is created.
     creation_time: "timestamp",
     start_run_time: "timestamp",
     finished_time: "timestamp",
-    test_config: jsonvalue
-    dependencies: ["dependency uuid", ...]
+    test_config: jsonvalue,
+    dependencies: ["dependency uuid", ...],
 }
 ```
 ### `utilization` Index
@@ -32,7 +32,7 @@ Each test is given an owned stream into Elasticsearch when it is created.
     timestamp: "timestamp",
     log_line: postitive incrementing integer,
     data: "Log message string",
-    is_stderr: bool
+    is_stderr: bool,
 }
 ```
 
@@ -41,7 +41,7 @@ Each test is given an owned stream into Elasticsearch when it is created.
 {
     t_id: "test uuid",
     timestamp: "timestamp",
-    data: jsonvalue
+    data: jsonvalue,
 }
 ```
 
