@@ -7,25 +7,39 @@ Each test is given an owned stream into Elasticsearch when it is created.
     t_id: "my-test-7d8ds0csfmsdkkf3e (UUID)", 
     test_name: "my-test",
     creation_time: "timestamp",
-    start_run_time: "timestamp",
-    finished_time: "timestamp",
+    execution_start_time: "timestamp",
+    termination_time: "timestamp",
+    // True if the test's script has a return code of 0. False otherwise
+    passed: bool,
+    stage_success: {
+        validation: bool,
+        dependency_building: bool,
+        resource_aquision: bool,
+        // This does not indicate if the test succeeded or failed, 
+        // but rather if it was executed without errors
+        execution: bool,
+    },
+    // The config of the executed test
     test_config: jsonvalue,
+    // Dependencies that were used (or built) for this test
     dependencies: ["dependency uuid", ...],
 }
 ```
 ### `utilization` Index
+Resource utilization of the underlying hardware. This may not be reliable if the test is run in a docker container as other processes can interfere with resource utilization.
 ```json5
 {
     t_id: "test uuid",
     timestamp: "timestamp",
     cpu_load: float,
     ram_usage: float,
-    // ... this should evolve from some 
+    // TODO ... this should be created from some 
     // generic sys-stats object
 }
 ```
 
 ### `logs` Index
+stdout + stderr of the test during execution
 ```json5
 {
     t_id: "test uuid",
@@ -37,6 +51,9 @@ Each test is given an owned stream into Elasticsearch when it is created.
 ```
 
 ### `stats` Index
+This stores custom test-specific statistics that might be useful for different tests
+
+Ex: a camera test may wish to store and graph frame-latency or jitter
 ```json5
 {
     t_id: "test uuid",
@@ -55,7 +72,9 @@ Each test is given an owned stream into Elasticsearch when it is created.
     built_for: "test uuid",
     build_start: "timestamp",
     build_end: "timestamp",
-    fs_root: "/path/to/file",
+    fs_root: "/path/to/dependency",
 }
 ```
-Maybe also collect util stats for building the dependency
+
+## Meta htp related info
+Todo. Most data will go through loki via promtail.
