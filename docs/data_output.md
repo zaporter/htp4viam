@@ -1,23 +1,22 @@
-Data from a test is sent from the orchestrator into Elasticsearch.
+Each test is given an owned stream into Elasticsearch when it is created. 
 
-
-This data has the following form:
-Tests:
+## Test Data:
+### `tests` Index
 ```json5
 {
-    id: "string",
-    test_name: "string",
+    t_id: "my-test-7d8ds0csfmsdkkf3e (UUID)", 
+    test_name: "my-test",
     creation_time: "timestamp",
     start_run_time: "timestamp",
     finished_time: "timestamp",
-    test_config: // TODO
-    dependencies: // TODO
+    test_config: jsonvalue
+    dependencies: ["dependency uuid", ...]
 }
 ```
-Usage:
+### `utilization` Index
 ```json5
 {
-    id: "string",
+    t_id: "test uuid",
     timestamp: "timestamp",
     cpu_load: float,
     ram_usage: float,
@@ -26,39 +25,37 @@ Usage:
 }
 ```
 
-Logs:
+### `logs` Index
 ```json5
 {
-    id: "string",
+    t_id: "test uuid",
     timestamp: "timestamp",
-    log_line: integer,
-    data: "integer",
+    log_line: postitive incrementing integer,
+    data: "Log message string",
     is_stderr: bool
 }
 ```
 
-
-Custom: 
+### `stats` Index
 ```json5
 {
-    id: "string",
+    t_id: "test uuid",
     timestamp: "timestamp",
     data: jsonvalue
 }
 ```
 
 
----
-Dependency info
-Dependency:
+## Dependencies
+### `dependencies` Index
 ```json5
 {
-    id: "string",
+    d_id: "dependency uuid",
     name: "string",
-    built_for: "test_id string",
+    built_for: "test uuid",
     build_start: "timestamp",
     build_end: "timestamp",
-    save_location: "/path/to/file"
+    fs_root: "/path/to/file",
 }
 ```
 Maybe also collect util stats for building the dependency
