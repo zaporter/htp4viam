@@ -3,6 +3,7 @@
     htp_folder_root: "/home/zack/htpout",
     // DANGER: Ask someone before touching this
     persist_test_runs: true,
-    host_addr: "helicon.local",
-    loki_addr: "loki.helicon.local",
+    host_addr: "localhost",
+    loki_addr: "loki.localhost",
+    elastic_addr: "elastic.localhost",
 }

@@ -7,6 +7,7 @@ pub struct OrchestratorConfig {
     pub persist_test_runs: bool,
     pub host_addr: String,
     pub loki_addr: String,
+    pub elastic_addr: String,
 }
 
 pub fn parse(path: &PathBuf) -> anyhow::Result<OrchestratorConfig> {

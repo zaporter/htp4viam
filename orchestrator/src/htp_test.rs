@@ -1,5 +1,4 @@
 use std::{
-    any,
     marker::PhantomData,
     path::PathBuf,
     sync::{Arc, Mutex},
@@ -7,21 +6,20 @@ use std::{
 };
 
 use anyhow::{anyhow, Context};
+use elasticsearch::{http::transport::Transport, Elasticsearch};
 
 use crate::{
     config::{
         dependencies::DependencySpecification,
         device_types::{DeviceClassification, DeviceType, DockerSpec},
         orchestrator_config::OrchestratorConfig,
-        tests::{TestGroup, TestMap, TestSpecification, TestSpecificationID},
+        tests::{TestGroup, TestSpecification, TestSpecificationID},
         Config,
     },
     environment::docker_env::DockerEnvironment,
     folder::{DependencyFolderType, HtpFolder, TestFolderType},
-    resource_ledger::ResourceLedger,
-    resources::ResourceCollection,
     running_test_map::{RunningTestMap, RunningTestMapEntry},
-    statistics::StatsSink,
+    statistics::{DbWrapper, WrapperType},
 };
 
 #[derive(Debug)]
@@ -113,7 +111,7 @@ pub struct HtpTest<Stage = Queued> {
     pub test_spec_id: TestSpecificationID,
     pub priority: TestPriority,
 
-    pub stats_sink: StatsSink,
+    pub stats_sink: DbWrapper,
 
     pub error: Option<anyhow::Error>,
     pub test_map: Arc<Mutex<RunningTestMap>>,
@@ -155,6 +153,9 @@ where
                 entry_time: SystemTime::now(),
             });
         }
+
+        let transport = Transport::single_node(&orchestrator_config.elastic_addr)?;
+        let client = Elasticsearch::new(transport);
         Ok(HtpTest {
             id: test_id,
             config_folder,
@@ -164,7 +165,7 @@ where
             dependencies: None,
             test_spec_id,
             priority,
-            stats_sink: StatsSink::new(test_id),
+            stats_sink: DbWrapper::new_elasticsearch(WrapperType::Test, "Chicken".into(), client),
             error: None,
             test_map,
             stage: PhantomData::default(),

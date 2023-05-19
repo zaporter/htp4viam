@@ -5,4 +5,5 @@
     persist_test_runs: true,
     host_addr: "helicon.local",
     loki_addr: "loki.helicon.local",
+    elastic_addr : "http://localhost:3060"
 }
